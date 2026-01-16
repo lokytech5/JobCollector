@@ -1,0 +1,22 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+
+# Virtual envs
+.venv/
+venv/
+.envrc
+
+# Env secrets
+.env
+
+# Pipenv
+Pipfile.lock
+
+# macOS
+.DS_Store
+
+# Logs
+*.log

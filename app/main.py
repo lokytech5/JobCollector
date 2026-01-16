@@ -1,0 +1,187 @@
+# app.py
+# Goal (Step 1): Prove FastAPI server runs and responds.
+from __future__ import annotations
+
+from dataclasses import dataclass
+from datetime import datetime
+from typing import Dict, List, Optional
+
+from fastapi import FastAPI
+from pydantic import BaseModel
+
+from fastapi import FastAPI
+from pydantic_settings import BaseSettings
+from pathlib import Path
+
+
+# WHY: Settings centralizes configuration (secrets, defaults) and keeps them out of code.
+# FastAPI apps in production read config from environment variables (12-factor style).
+
+class Settings(BaseSettings):
+    REED_API_KEY: str
+
+    # pydantic-settings v2: load from a local .env file for dev convenience
+    model_config = {
+        "env_file": str(Path(__file__).resolve().parents[1] / ".env"),
+        "env_file_encoding": "utf-8",
+    }
+
+
+# Instantiate settings at import time.
+settings = Settings()
+
+# Create the web application object.
+# WHY: FastAPI uses this object to register routes.
+app = FastAPI(title="Job Collector (Learning Version)")
+
+
+# -----------------------------
+#  Domain model (Job)
+# -----------------------------
+@dataclass(frozen=True)
+class Job:
+    """
+    WHY this exists:
+      - This is our INTERNAL representation of a job.
+      - No matter where a job comes from (Reed, Adzuna, Visa, etc.),
+        we normalize it into this shape.
+    """
+    source: str
+    source_job_id: str
+    title: str
+    company: Optional[str] = None
+    location: Optional[str] = None
+    url: Optional[str] = None
+    posted_at: Optional[datetime] = None
+
+    @property
+    def uid(self) -> str:
+        """
+        WHY: Stable unique key for dedupe.
+        Example: reed:123456
+        """
+        return f"{self.source}:{self.source_job_id}"
+
+# -----------------------------
+# Repository (in-memory store)
+# -----------------------------
+
+
+class InMemoryJobStore:
+    """
+    Think of this like a Repository.
+    For now it uses memory (a dict) instead of a real DB.
+
+    Later we'll swap this for Postgres without changing much else.
+    """
+
+    def __init__(self):
+        self._jobs_by_uid: Dict[str, Job] = {}
+
+    def upsert_many(self, jobs: List[Job]) -> int:
+        inserted = 0
+        for job in jobs:
+            if job.uid not in self._jobs_by_uid:
+                inserted += 1
+            self._jobs_by_uid[job.uid] = job
+            return inserted
+
+    def list(self, limit: int = 50) -> List[Job]:
+        """
+        Return latest jobs. If posted_at is missing, ordering is less meaningful,
+        """
+
+        def sort_key(job: Job):
+            return job.posted_at or datetime.min
+        return sorted(self._jobs_by_uid.values(), key=sort_key, reverse=True)[:limit]
+
+    def count(self) -> int:
+        return len(self._jobs_by_uid)
+
+
+store = InMemoryJobStore()
+
+
+# -----------------------------
+# Step 3C: API schemas (Pydantic)
+# -----------------------------
+class JobOut(BaseModel):
+    uid: str
+    source: str
+    source_job_id: str
+    title: str
+    company: Optional[str] = None
+    location: Optional[str] = None
+    url: Optional[str] = None
+    posted_at: Optional[datetime] = None
+
+
+class DebugAddJobIn(BaseModel):
+    title: str
+    company: Optional[str] = None
+
+
+# -----------------------------
+# Endpoints
+# -----------------------------
+@app.get("/health")
+def health():
+    return {
+        "status": "ok",
+        "reed_api_loaded": bool(settings.REED_API_KEY)
+    }
+
+
+@app.get("/jobs", response_model=List[JobOut])
+def list_jobs(limit: int = 50):
+    jobs = store.list(limit=limit)
+    return [
+        JobOut(
+            uid=j.uid,
+            source=j.source,
+            source_job_id=j.source_job_id,
+            title=j.title,
+            company=j.company,
+            location=j.location,
+            url=j.url,
+            posted_at=j.posted_at,
+        )
+        for j in jobs
+    ]
+
+
+@app.post("/debug/add_fake_job", response_model=JobOut)
+def add_fake_job(payload: DebugAddJobIn):
+    """
+    WHY this endpoint exists:
+      - it's a local test to verify:
+          1) our Job model works
+          2) our store can save + list
+      - We'll DELETE this later once Reed ingestion works.
+
+    TEST:
+      POST /debug/add_fake_job with {"title": "..."}
+      then GET /jobs and see it appear.
+    """
+    fake = Job(
+        source="debug",
+        source_job_id=str(store.count() + 1),  # simple unique id
+        title=payload.title,
+        company=payload.company,
+        location="London",
+        url=None,
+        posted_at=datetime.utcnow(),
+    )
+
+    store.upsert_many([fake])
+
+    return JobOut(
+        uid=fake.uid,
+        source=fake.source,
+        source_job_id=fake.source_job_id,
+        title=fake.title,
+        company=fake.company,
+        location=fake.location,
+        url=fake.url,
+        posted_at=fake.posted_at,
+    )
