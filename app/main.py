@@ -22,6 +22,8 @@ from fastapi import HTTPException
 
 class Settings(BaseSettings):
     REED_API_KEY: str
+    ADZUNA_APP_ID: str
+    ADZUNA_APP_KEY: str
 
     # pydantic-settings v2: load from a local .env file for dev convenience
     model_config = {
@@ -142,6 +144,52 @@ class ReedApiClient:
         return response.json()
 
 
+class AdzunaApiClient:
+    """
+    Raw Adzuna API client (returns JSON) — great for quickly testing endpoint + keys.
+    """
+    BASE_URL = "https://api.adzuna.com/v1/api"
+
+    def __init__(self, app_id: str, app_key: str):
+        self.app_id = app_id
+        self.app_key = app_key
+        self.client = httpx.Client(
+            timeout=30,
+            headers={"Accept": "application/json"},
+        )
+
+    def search_jobs(
+        self,
+        what: str,
+        where: Optional[str] = None,
+        results_per_page: int = 10,
+        page: int = 1,
+        country: str = "gb",
+    ) -> Dict:
+        params = {
+            "app_id": self.app_id,
+            "app_key": self.app_key,
+            "results_per_page": results_per_page,
+            "what": what,
+            # optional override to force JSON if needed:
+            # "content-type": "application/json",
+        }
+        if where:
+            params["where"] = where
+
+        url = f"{self.BASE_URL}/jobs/{country}/search/{page}"
+        resp = self.client.get(url, params=params)
+
+        if resp.status_code == 401 or resp.status_code == 403:
+            raise HTTPException(
+                status_code=401, detail="Adzuna auth failed. Check ADZUNA_APP_ID/ADZUNA_APP_KEY.")
+        if resp.status_code >= 400:
+            raise HTTPException(
+                status_code=502, detail=f"Adzuna error {resp.status_code}: {resp.text[:250]}")
+
+        return resp.json()
+
+
 # -----------------------------
 # Step 3C: API schemas (Pydantic)
 # -----------------------------
@@ -246,4 +294,23 @@ def debug_reed_raw(
         keywords=keywords,
         location_name=location_name,
         results_to_take=results_to_take,
+    )
+
+
+adzuna_api = AdzunaApiClient(settings.ADZUNA_APP_ID, settings.ADZUNA_APP_KEY)
+
+
+@app.get("/debug/adzuna/raw")
+def debug_adzuna_raw(
+    what: str = "backend engineer",
+    where: str = "London",
+    results_per_page: int = 10,
+    page: int = 1,
+):
+    return adzuna_api.search_jobs(
+        what=what,
+        where=where,
+        results_per_page=results_per_page,
+        page=page,
+        country="gb",
     )
