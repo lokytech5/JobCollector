@@ -13,6 +13,9 @@ from fastapi import FastAPI
 from pydantic_settings import BaseSettings
 from pathlib import Path
 
+import httpx
+from fastapi import HTTPException
+
 
 # WHY: Settings centralizes configuration (secrets, defaults) and keeps them out of code.
 # FastAPI apps in production read config from environment variables (12-factor style).
@@ -102,6 +105,43 @@ class InMemoryJobStore:
 store = InMemoryJobStore()
 
 
+class ReedApiClient:
+    """
+    Raw Reed API client (returns JSON) — good for testing connectivity and auth.
+    """
+    BASE_URL = "https://www.reed.co.uk/api/1.0"  # no trailing slash
+
+    def __init__(self, api_key: str):
+        self.api_key = api_key
+        # Basic Auth: username=api_key, password=""
+        self.client = httpx.Client(auth=(api_key, ""), timeout=30, headers={
+                                   "Accept": "application/json"})
+
+    def search_jobs(
+        self,
+        keywords: str,
+        location_name: Optional[str] = None,
+        results_to_take: int = 25,
+    ) -> Dict:
+        params = {
+            "keywords": keywords,
+            "resultsToTake": results_to_take,
+        }
+        if location_name:
+            params["locationName"] = location_name
+
+        response = self.client.get(f"{self.BASE_URL}/search", params=params)
+
+        if response.status_code == 401:
+            raise HTTPException(
+                status_code=401, detail="Reed auth failed. Check REED_API_KEY.")
+        if response.status_code >= 400:
+            raise HTTPException(
+                status_code=502, detail=f"Reed error {response.status_code}: {response.text[:200]}")
+
+        return response.json()
+
+
 # -----------------------------
 # Step 3C: API schemas (Pydantic)
 # -----------------------------
@@ -184,4 +224,26 @@ def add_fake_job(payload: DebugAddJobIn):
         location=fake.location,
         url=fake.url,
         posted_at=fake.posted_at,
+    )
+
+
+reed_api = ReedApiClient(settings.REED_API_KEY)
+
+
+@app.get("/debug/reed/raw")
+def debug_reed_raw(
+    keywords: str = "typescript backend",
+    location_name: str = "London",
+    results_to_take: int = 10,
+):
+    """
+    Temporary endpoint to confirm:
+      - Reed endpoint works
+      - Your API key works
+      - Query params behave
+    """
+    return reed_api.search_jobs(
+        keywords=keywords,
+        location_name=location_name,
+        results_to_take=results_to_take,
     )

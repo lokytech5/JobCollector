@@ -9,6 +9,7 @@ fastapi = "*"
 httpie = "*"
 pydantic = "*"
 pydantic-settings = "*"
+httpx = "*"
 
 [dev-packages]
 
