@@ -31,57 +31,6 @@ app.include_router(health.router)
 app.include_router(jobs.router)
 
 
-@app.post("/ingest/reed", response_model=IngestOut)
-def ingest_reed(payload: ReedIngestIn):
-    jobs = reed_api_client.search(
-        keywords=payload.keywords,
-        location_name=payload.location_name,
-        results_to_take=payload.results_to_take,
-    )
-    inserted = store.upsert_many(jobs)
-    return IngestOut(fetched=len(jobs), inserted=inserted, total_in_store=store.count())
-
-
-@app.post("/ingest/adzuna", response_model=IngestOut)
-def ingest_adzuna(payload: AdzunaIngestIn):
-    jobs = adzuna_api_client.search(
-        what=payload.what,
-        where=payload.where,
-        results_per_page=payload.results_per_page,
-        page=payload.page,
-    )
-    inserted = store.upsert_many(jobs)
-    return IngestOut(fetched=len(jobs), inserted=inserted, total_in_store=store.count())
-
-
-@app.post("/ingest/all", response_model=IngestAllOut)
-def ingest_all(payload: IngestAllIn):
-    # Reed
-    reed_jobs = reed_api_client.search(
-        keywords=payload.keywords,
-        location_name=payload.location_name,
-        results_to_take=payload.reed_results,
-    )
-    reed_inserted = store.upsert_many(reed_jobs)
-
-    # Adzuna
-    adzuna_jobs = adzuna_api_client.search(
-        what=payload.keywords,
-        where=payload.location_name,
-        results_per_page=payload.adzuna_results,
-        page=payload.adzuna_page,
-    )
-    adzuna_inserted = store.upsert_many(adzuna_jobs)
-
-    return IngestAllOut(
-        reed=IngestOut(fetched=len(reed_jobs),
-                       inserted=reed_inserted, total_in_store=store.count()),
-        adzuna=IngestOut(fetched=len(adzuna_jobs),
-                         inserted=adzuna_inserted, total_in_store=store.count()),
-        total_in_store=store.count(),
-    )
-
-
 @app.post("/debug/add_fake_job", response_model=JobOut)
 def add_fake_job(payload: DebugAddJobIn):
     """
