@@ -15,6 +15,8 @@ import httpx
 from app.core.config import settings
 from app.domain.job import Job, parse_reed_date, parse_adzuna_date_iso
 from app.services.store import InMemoryJobStore
+from app.sources.reed import ReedApiClient
+from app.sources.adzuna import AdzunaApiClient
 
 
 # Create the web application object.
@@ -30,133 +32,6 @@ app = FastAPI(title="Job Collector (Learning Version)")
 # -----------------------------
 # Repository (in-memory store)
 # -----------------------------
-
-
-class ReedApiClient:
-    """
-    Raw Reed API client (returns JSON) — good for testing connectivity and auth.
-    """
-    BASE_URL = "https://www.reed.co.uk/api/1.0"  # no trailing slash
-
-    def __init__(self, api_key: str):
-        self.api_key = api_key
-        # Basic Auth: username=api_key, password=""
-        self.client = httpx.Client(auth=(api_key, ""), timeout=30, headers={
-                                   "Accept": "application/json"})
-
-    def search_raw(self, *, keywords: str, location_name: Optional[str] = None, results_to_take: int = 25) -> Dict:
-        params = {
-            "keywords": keywords,
-            "resultsToTake": results_to_take,
-        }
-        if location_name:
-            params["locationName"] = location_name
-
-        resp = self.client.get(f"{self.BASE_URL}/search", params=params)
-
-        if resp.status_code == 401:
-            raise HTTPException(
-                status_code=401, detail="Reed auth failed. Check REED_API_KEY.")
-        if resp.status_code >= 400:
-            raise HTTPException(
-                status_code=502, detail=f"Reed error {resp.status_code}: {resp.text[:200]}")
-        return resp.json()
-
-    def search(self, *, keywords: str, location_name: Optional[str] = None, results_to_take: int = 25) -> List[Job]:
-        data = self.search_raw(
-            keywords=keywords,
-            location_name=location_name,
-            results_to_take=results_to_take,
-        )
-
-        jobs: List[Job] = []
-        for item in data.get("results", []):
-            job_id = item.get("jobId")
-            title = item.get("jobTitle")
-            if not job_id or not title:
-                continue
-
-            jobs.append(
-                Job(
-                    source="reed",
-                    source_job_id=str(job_id),
-                    title=title,
-                    company=item.get("employerName"),
-                    location=item.get("locationName"),
-                    url=item.get("jobUrl"),
-                    posted_at=parse_reed_date(item.get("date")),
-                )
-            )
-        return jobs
-
-
-class AdzunaApiClient:
-    """
-    Raw Adzuna API client (returns JSON) — great for quickly testing endpoint + keys.
-    """
-    BASE_URL = "https://api.adzuna.com/v1/api"
-
-    def __init__(self, app_id: str, app_key: str):
-        self.app_id = app_id
-        self.app_key = app_key
-        self.client = httpx.Client(
-            timeout=30,
-            headers={"Accept": "application/json"},
-        )
-
-    def search_raw(self, *, what: str, where: Optional[str] = None, results_per_page: int = 10, page: int = 1, country: str = "gb") -> Dict:
-        params = {
-            "app_id": self.app_id,
-            "app_key": self.app_key,
-            "what": what,
-            "results_per_page": results_per_page,
-        }
-        if where:
-            params["where"] = where
-
-        url = f"{self.BASE_URL}/jobs/{country}/search/{page}"
-        resp = self.client.get(url, params=params)
-
-        if resp.status_code in (401, 403):
-            raise HTTPException(
-                status_code=401, detail="Adzuna auth failed. Check ADZUNA_APP_ID/ADZUNA_APP_KEY.")
-        if resp.status_code >= 400:
-            raise HTTPException(
-                status_code=502, detail=f"Adzuna error {resp.status_code}: {resp.text[:200]}")
-        return resp.json()
-
-    def search(self, *, what: str, where: Optional[str] = None, results_per_page: int = 10, page: int = 1, country: str = "gb") -> List[Job]:
-        data = self.search_raw(
-            what=what,
-            where=where,
-            results_per_page=results_per_page,
-            page=page,
-            country=country,
-        )
-
-        jobs: List[Job] = []
-        for item in data.get("results", []):
-            job_id = item.get("id")
-            title = item.get("title")
-            if not job_id or not title:
-                continue
-
-            company = (item.get("company") or {}).get("display_name")
-            location = (item.get("location") or {}).get("display_name")
-            url = item.get("redirect_url")
-
-            jobs.append(
-                Job(
-                    source="adzuna",
-                    source_job_id=str(job_id),
-                    title=title,
-                    company=company,
-                    location=location,
-                    url=url,
-                    posted_at=parse_adzuna_date_iso(item.get("created")),
-                )
-            )
-        return jobs
 
 
 # -----------------------------
@@ -216,8 +91,9 @@ class IngestAllOut(BaseModel):
 
 
 store = InMemoryJobStore()
-reed_api = ReedApiClient(settings.REED_API_KEY)
-adzuna_api = AdzunaApiClient(settings.ADZUNA_APP_ID, settings.ADZUNA_APP_KEY)
+reed_api_client = ReedApiClient(settings.REED_API_KEY)
+adzuna_api_client = AdzunaApiClient(
+    settings.ADZUNA_APP_ID, settings.ADZUNA_APP_KEY)
 
 
 @app.get("/health")
@@ -245,7 +121,7 @@ def list_jobs(limit: int = 50):
 
 @app.post("/ingest/reed", response_model=IngestOut)
 def ingest_reed(payload: ReedIngestIn):
-    jobs = reed_api.search(
+    jobs = reed_api_client.search(
         keywords=payload.keywords,
         location_name=payload.location_name,
         results_to_take=payload.results_to_take,
@@ -256,7 +132,7 @@ def ingest_reed(payload: ReedIngestIn):
 
 @app.post("/ingest/adzuna", response_model=IngestOut)
 def ingest_adzuna(payload: AdzunaIngestIn):
-    jobs = adzuna_api.search(
+    jobs = adzuna_api_client.search(
         what=payload.what,
         where=payload.where,
         results_per_page=payload.results_per_page,
@@ -269,7 +145,7 @@ def ingest_adzuna(payload: AdzunaIngestIn):
 @app.post("/ingest/all", response_model=IngestAllOut)
 def ingest_all(payload: IngestAllIn):
     # Reed
-    reed_jobs = reed_api.search(
+    reed_jobs = reed_api_client.search(
         keywords=payload.keywords,
         location_name=payload.location_name,
         results_to_take=payload.reed_results,
@@ -277,7 +153,7 @@ def ingest_all(payload: IngestAllIn):
     reed_inserted = store.upsert_many(reed_jobs)
 
     # Adzuna
-    adzuna_jobs = adzuna_api.search(
+    adzuna_jobs = adzuna_api_client.search(
         what=payload.keywords,
         where=payload.location_name,
         results_per_page=payload.adzuna_results,
@@ -352,7 +228,7 @@ def debug_reed_raw(
       - Your API key works
       - Query params behave
     """
-    return reed_api.search_jobs(
+    return reed_api_client.search_jobs(
         keywords=keywords,
         location_name=location_name,
         results_to_take=results_to_take,
@@ -366,7 +242,7 @@ def debug_adzuna_raw(
     results_per_page: int = 10,
     page: int = 1,
 ):
-    return adzuna_api.search_jobs(
+    return adzuna_api_client.search_jobs(
         what=what,
         where=where,
         results_per_page=results_per_page,
