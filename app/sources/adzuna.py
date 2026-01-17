@@ -10,13 +10,10 @@ class AdzunaApiClient:
     """
     BASE_URL = "https://api.adzuna.com/v1/api"
 
-    def __init__(self, app_id: str, app_key: str):
+    def __init__(self, app_id: str, app_key: str, client: httpx.Client):
         self.app_id = app_id
         self.app_key = app_key
-        self.client = httpx.Client(
-            timeout=30,
-            headers={"Accept": "application/json"},
-        )
+        self.client = client
 
     def search_raw(self, *, what: str, where: Optional[str] = None, results_per_page: int = 10, page: int = 1, country: str = "gb") -> Dict:
         params = {

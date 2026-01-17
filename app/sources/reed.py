@@ -10,11 +10,10 @@ class ReedApiClient:
     """
     BASE_URL = "https://www.reed.co.uk/api/1.0"  # no trailing slash
 
-    def __init__(self, api_key: str):
+    def __init__(self, api_key: str, client: httpx.Client):
         self.api_key = api_key
         # Basic Auth: username=api_key, password=""
-        self.client = httpx.Client(auth=(api_key, ""), timeout=30, headers={
-                                   "Accept": "application/json"})
+        self.client = client
 
     def search_raw(self, *, keywords: str, location_name: Optional[str] = None, results_to_take: int = 25) -> Dict:
         params = {
