@@ -1,5 +1,5 @@
-
-from typing import List
+from __future__ import annotations
+from typing import Dict, List
 from app.domain.job import Job
 from datetime import datetime
 
@@ -13,7 +13,7 @@ class InMemoryJobStore:
     """
 
     def __init__(self):
-        self._jobs_by_uid: dict[str, Job] = {}
+        self._jobs_by_uid: Dict[str, Job] = {}
 
     def upsert_many(self, jobs: List[Job]) -> int:
         """
