@@ -1,11 +1,13 @@
 
+from fastapi import APIRouter
 from typing import List
-import app
 from app.api.schemas import JobOut
 from app.services import store
 
+router = APIRouter(tags=["jobs"])
 
-@app.get("/jobs", response_model=List[JobOut])
+
+@router.get("/jobs", response_model=List[JobOut])
 def list_jobs(limit: int = 50):
     jobs = store.list(limit=limit)
     return [
@@ -23,7 +25,7 @@ def list_jobs(limit: int = 50):
     ]
 
 
-@app.get("/debug/store")
+@router.get("/debug/store")
 def debug_store():
     return {
         "store_id": id(store),

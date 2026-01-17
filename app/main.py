@@ -28,6 +28,7 @@ adzuna_api_client = AdzunaApiClient(
     settings.ADZUNA_APP_ID, settings.ADZUNA_APP_KEY)
 
 app.include_router(health.router)
+app.include_router(jobs.router)
 
 
 @app.post("/ingest/reed", response_model=IngestOut)
