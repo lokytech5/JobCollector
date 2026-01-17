@@ -1,14 +1,18 @@
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 from typing import List
+from app.api.deps import get_store
 from app.api.schemas import JobOut
-from app.services import store
+from app.services.store import InMemoryJobStore
 
 router = APIRouter(tags=["jobs"])
 
 
 @router.get("/jobs", response_model=List[JobOut])
-def list_jobs(limit: int = 50):
+def list_jobs(
+    limit: int = 50,
+    store: InMemoryJobStore = Depends(get_store)
+):
     jobs = store.list(limit=limit)
     return [
         JobOut(
@@ -23,12 +27,3 @@ def list_jobs(limit: int = 50):
         )
         for j in jobs
     ]
-
-
-@router.get("/debug/store")
-def debug_store():
-    return {
-        "store_id": id(store),
-        "count": store.count(),
-        "uids_preview": list(store._jobs_by_uid.keys())[:5],
-    }

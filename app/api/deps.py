@@ -1,22 +1,20 @@
-# app/api/deps.py
-from functools import lru_cache
-
 from app.core.config import settings
 from app.services.store import InMemoryJobStore
 from app.sources.reed import ReedApiClient
 from app.sources.adzuna import AdzunaApiClient
 
+_store = InMemoryJobStore()
+_reed = ReedApiClient(settings.REED_API_KEY)
+_adzuna = AdzunaApiClient(settings.ADZUNA_APP_ID, settings.ADZUNA_APP_KEY)
 
-@lru_cache
+
 def get_store() -> InMemoryJobStore:
-    return InMemoryJobStore()
+    return _store
 
 
-@lru_cache
 def get_reed_client() -> ReedApiClient:
-    return ReedApiClient(settings.REED_API_KEY)
+    return _reed
 
 
-@lru_cache
 def get_adzuna_client() -> AdzunaApiClient:
-    return AdzunaApiClient(settings.ADZUNA_APP_ID, settings.ADZUNA_APP_KEY)
+    return _adzuna

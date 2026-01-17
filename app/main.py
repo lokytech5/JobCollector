@@ -1,103 +1,10 @@
-# app.py
-# Goal (Step 1): Prove FastAPI server runs and responds.
 from __future__ import annotations
-
-from datetime import datetime
-from typing import Dict, List, Optional
-
-
 from fastapi import FastAPI
-
-from app.api.schemas import AdzunaIngestIn, DebugAddJobIn, IngestAllIn, IngestAllOut, IngestOut, JobOut, ReedIngestIn
-import httpx
-
-from app.core.config import settings
-from app.domain.job import Job
-from app.services.store import InMemoryJobStore
-from app.sources.reed import ReedApiClient
-
-from app.routers import jobs, health, ingest
-from app.sources.adzuna import AdzunaApiClient
+from app.routers import debug, jobs, health, ingest
 
 app = FastAPI(title="Job Collector (Learning Version)")
 
-
-store = InMemoryJobStore()
-reed_api_client = ReedApiClient(settings.REED_API_KEY)
-adzuna_api_client = AdzunaApiClient(
-    settings.ADZUNA_APP_ID, settings.ADZUNA_APP_KEY)
-
 app.include_router(health.router)
 app.include_router(jobs.router)
-
-
-@app.post("/debug/add_fake_job", response_model=JobOut)
-def add_fake_job(payload: DebugAddJobIn):
-    """
-    WHY this endpoint exists:
-      - it's a local test to verify:
-          1) our Job model works
-          2) our store can save + list
-      - We'll DELETE this later once Reed ingestion works.
-
-    TEST:
-      POST /debug/add_fake_job with {"title": "..."}
-      then GET /jobs and see it appear.
-    """
-    fake = Job(
-        source="debug",
-        source_job_id=str(store.count() + 1),  # simple unique id
-        title=payload.title,
-        company=payload.company,
-        location="London",
-        url=None,
-        posted_at=datetime.utcnow(),
-    )
-
-    store.upsert_many([fake])
-
-    return JobOut(
-        uid=fake.uid,
-        source=fake.source,
-        source_job_id=fake.source_job_id,
-        title=fake.title,
-        company=fake.company,
-        location=fake.location,
-        url=fake.url,
-        posted_at=fake.posted_at,
-    )
-
-
-@app.get("/debug/reed/raw")
-def debug_reed_raw(
-    keywords: str = "typescript backend",
-    location_name: str = "London",
-    results_to_take: int = 10,
-):
-    """
-    Temporary endpoint to confirm:
-      - Reed endpoint works
-      - Your API key works
-      - Query params behave
-    """
-    return reed_api_client.search_raw(
-        keywords=keywords,
-        location_name=location_name,
-        results_to_take=results_to_take,
-    )
-
-
-@app.get("/debug/adzuna/raw")
-def debug_adzuna_raw(
-    what: str = "backend engineer",
-    where: str = "London",
-    results_per_page: int = 10,
-    page: int = 1,
-):
-    return adzuna_api_client.search_raw(
-        what=what,
-        where=where,
-        results_per_page=results_per_page,
-        page=page,
-        country="gb",
-    )
+app.include_router(ingest.router)
+app.include_router(debug.router)
