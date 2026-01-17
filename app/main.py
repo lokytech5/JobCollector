@@ -2,46 +2,24 @@
 # Goal (Step 1): Prove FastAPI server runs and responds.
 from __future__ import annotations
 
-from dataclasses import dataclass
 from datetime import datetime
 from typing import Dict, List, Optional
 
 
-from fastapi import FastAPI, HTTPException, Body
+from fastapi import FastAPI
 
 from app.api.schemas import AdzunaIngestIn, DebugAddJobIn, IngestAllIn, IngestAllOut, IngestOut, JobOut, ReedIngestIn
 import httpx
 
 from app.core.config import settings
-from app.domain.job import Job, parse_reed_date, parse_adzuna_date_iso
+from app.domain.job import Job
 from app.services.store import InMemoryJobStore
 from app.sources.reed import ReedApiClient
+
+from app.routers import jobs, health, ingest
 from app.sources.adzuna import AdzunaApiClient
 
-
-# Create the web application object.
-# WHY: FastAPI uses this object to register routes.
 app = FastAPI(title="Job Collector (Learning Version)")
-
-
-# -----------------------------
-#  Domain model (Job)
-# -----------------------------
-
-
-# -----------------------------
-# Repository (in-memory store)
-# -----------------------------
-
-
-# -----------------------------
-# Step 3C: API schemas (Pydantic)
-# -----------------------------
-
-
-# -----------------------------
-# Endpoints
-# -----------------------------
 
 
 store = InMemoryJobStore()
@@ -49,28 +27,7 @@ reed_api_client = ReedApiClient(settings.REED_API_KEY)
 adzuna_api_client = AdzunaApiClient(
     settings.ADZUNA_APP_ID, settings.ADZUNA_APP_KEY)
 
-
-@app.get("/health")
-def health():
-    return {"status": "ok", "reed_api_loaded": True, "adzuna_loaded": True}
-
-
-@app.get("/jobs", response_model=List[JobOut])
-def list_jobs(limit: int = 50):
-    jobs = store.list(limit=limit)
-    return [
-        JobOut(
-            uid=j.uid,
-            source=j.source,
-            source_job_id=j.source_job_id,
-            title=j.title,
-            company=j.company,
-            location=j.location,
-            url=j.url,
-            posted_at=j.posted_at,
-        )
-        for j in jobs
-    ]
+app.include_router(health.router)
 
 
 @app.post("/ingest/reed", response_model=IngestOut)
@@ -124,15 +81,6 @@ def ingest_all(payload: IngestAllIn):
     )
 
 
-@app.get("/debug/store")
-def debug_store():
-    return {
-        "store_id": id(store),
-        "count": store.count(),
-        "uids_preview": list(store._jobs_by_uid.keys())[:5],
-    }
-
-
 @app.post("/debug/add_fake_job", response_model=JobOut)
 def add_fake_job(payload: DebugAddJobIn):
     """
@@ -182,7 +130,7 @@ def debug_reed_raw(
       - Your API key works
       - Query params behave
     """
-    return reed_api_client.search_jobs(
+    return reed_api_client.search_raw(
         keywords=keywords,
         location_name=location_name,
         results_to_take=results_to_take,
@@ -196,7 +144,7 @@ def debug_adzuna_raw(
     results_per_page: int = 10,
     page: int = 1,
 ):
-    return adzuna_api_client.search_jobs(
+    return adzuna_api_client.search_raw(
         what=what,
         where=where,
         results_per_page=results_per_page,
