@@ -9,10 +9,10 @@ from typing import Dict, List, Optional
 from pydantic import BaseModel
 
 from fastapi import FastAPI, HTTPException, Body
-from pydantic_settings import BaseSettings
-from pathlib import Path
 
 import httpx
+
+from app.core.config import settings
 
 
 # Create the web application object.
@@ -297,36 +297,9 @@ class IngestAllOut(BaseModel):
 # -----------------------------
 
 
-@app.get("/health")
-def health():
-    return {
-        "status": "ok",
-        "reed_api_loaded": True,
-        "adzuna_loaded": True
-    }
-
-
-@app.get("/jobs", response_model=List[JobOut])
-def list_jobs(limit: int = 50):
-    jobs = store.list(limit=limit)
-    return [
-        JobOut(
-            uid=j.uid,
-            source=j.source,
-            source_job_id=j.source_job_id,
-            title=j.title,
-            company=j.company,
-            location=j.location,
-            url=j.url,
-            posted_at=j.posted_at,
-        )
-        for j in jobs
-    ]
-
-
 store = InMemoryJobStore()
-reed = ReedApiClient(settings.REED_API_KEY)
-adzuna = AdzunaApiClient(settings.ADZUNA_APP_ID, settings.ADZUNA_APP_KEY)
+reed_api = ReedApiClient(settings.REED_API_KEY)
+adzuna_api = AdzunaApiClient(settings.ADZUNA_APP_ID, settings.ADZUNA_APP_KEY)
 
 
 @app.get("/health")
@@ -354,7 +327,7 @@ def list_jobs(limit: int = 50):
 
 @app.post("/ingest/reed", response_model=IngestOut)
 def ingest_reed(payload: ReedIngestIn):
-    jobs = reed.search(
+    jobs = reed_api.search(
         keywords=payload.keywords,
         location_name=payload.location_name,
         results_to_take=payload.results_to_take,
@@ -365,7 +338,7 @@ def ingest_reed(payload: ReedIngestIn):
 
 @app.post("/ingest/adzuna", response_model=IngestOut)
 def ingest_adzuna(payload: AdzunaIngestIn):
-    jobs = adzuna.search(
+    jobs = adzuna_api.search(
         what=payload.what,
         where=payload.where,
         results_per_page=payload.results_per_page,
@@ -378,7 +351,7 @@ def ingest_adzuna(payload: AdzunaIngestIn):
 @app.post("/ingest/all", response_model=IngestAllOut)
 def ingest_all(payload: IngestAllIn):
     # Reed
-    reed_jobs = reed.search(
+    reed_jobs = reed_api.search(
         keywords=payload.keywords,
         location_name=payload.location_name,
         results_to_take=payload.reed_results,
@@ -386,7 +359,7 @@ def ingest_all(payload: IngestAllIn):
     reed_inserted = store.upsert_many(reed_jobs)
 
     # Adzuna
-    adzuna_jobs = adzuna.search(
+    adzuna_jobs = adzuna_api.search(
         what=payload.keywords,
         where=payload.location_name,
         results_per_page=payload.adzuna_results,
@@ -449,9 +422,6 @@ def add_fake_job(payload: DebugAddJobIn):
     )
 
 
-reed_api = ReedApiClient(settings.REED_API_KEY)
-
-
 @app.get("/debug/reed/raw")
 def debug_reed_raw(
     keywords: str = "typescript backend",
@@ -469,9 +439,6 @@ def debug_reed_raw(
         location_name=location_name,
         results_to_take=results_to_take,
     )
-
-
-adzuna_api = AdzunaApiClient(settings.ADZUNA_APP_ID, settings.ADZUNA_APP_KEY)
 
 
 @app.get("/debug/adzuna/raw")

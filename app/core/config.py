@@ -12,7 +12,7 @@ class Settings(BaseSettings):
 
     # pydantic-settings v2: load from a local .env file for dev convenience
     model_config = {
-        "env_file": str(Path(__file__).resolve().parents[1] / ".env"),
+        "env_file": str(Path(__file__).resolve().parents[2] / ".env"),
         "env_file_encoding": "utf-8",
     }
 
