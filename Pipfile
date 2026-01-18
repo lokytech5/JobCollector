@@ -11,6 +11,8 @@ pydantic = "*"
 pydantic-settings = "*"
 httpx = "*"
 sqlalchemy = "*"
+alembic = "*"
+psycopg = {extras = ["binary"], version = "*"}
 
 [dev-packages]
 
