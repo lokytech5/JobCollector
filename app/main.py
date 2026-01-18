@@ -1,4 +1,7 @@
 from contextlib import asynccontextmanager
+
+from sqlalchemy import text
+from app.db import make_engine, make_session_factory
 from app.services.saved_searches import InMemorySavedSearchRepo
 import httpx
 from fastapi import FastAPI
@@ -12,6 +15,13 @@ from app.routers import debug, jobs, health, ingest, searches
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    # Initialize db connection, engine, clients, repo.
+    engine = make_engine(settings.DATABASE_URL)
+    app.state.engine = engine
+    app.state.db = make_session_factory(engine)
+
+    with engine.connect() as conn:
+        conn.execute(text("select 1"))
     # singletons
     app.state.store = InMemoryJobStore()
     app.state.searches = InMemorySavedSearchRepo()
@@ -31,6 +41,7 @@ async def lifespan(app: FastAPI):
     finally:
         reed_http.close()
         adzuna_http.close()
+        engine.dispose()
 
 app = FastAPI(title="Job Collector (Learning Version)", lifespan=lifespan)
 
