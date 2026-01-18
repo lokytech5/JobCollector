@@ -62,6 +62,7 @@ class SavedSearchIn(BaseModel):
 
 
 class SavedSearchOut(BaseModel):
+    name: str
     q: Optional[str] = None
     source: Optional[str] = None
     location: Optional[str] = None
@@ -70,7 +71,7 @@ class SavedSearchOut(BaseModel):
     seen_count: int = 0
 
 
-class RunSavedSearchOut(BaseMaodel):
+class RunSavedSearchOut(BaseModel):
     search: SavedSearchOut
     results: List[JobOut]
 

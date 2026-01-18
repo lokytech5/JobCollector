@@ -53,28 +53,22 @@ class InMemoryJobStore:
         posted_after: Optional[date] = None,
         limit: int = 50,
     ) -> List[Job]:
-        """
-        Simple in-memory filtering.
-        - q matches title/company/location (case-insensitive contains)
-        - source matches exact (reed/adzuna)
-        - location matches contains (case-insensitive)
-        - posted_after keeps jobs with posted_at >= posted_after (date-based)
-        """
-        def text_contains(haystack: Optional[str], needle: str) -> bool:
-            return bool(haystack) and needle in haystack.lower()
 
-        q_norm = q.strip().lower() if q else None
-        source_norm = source.strip().lower() if source else None
-        loc_norm = location.strip().lower() if location else None
+        def norm(s: Optional[str]) -> str:
+            return (s or "").strip().lower()
+
+        q_tokens = [t for t in norm(q).split() if t] if q else []
+        source_norm = norm(source) if source else None
+        loc_norm = norm(location) if location else None
 
         results: List[Job] = []
 
         for job in self._jobs_by_uid.values():
             # source filter
-            if source_norm and (job.source or "").lower() != source_norm:
+            if source_norm and norm(job.source) != source_norm:
                 continue
 
-            # posted_after filter (date granularity)
+            # posted_after filter
             if posted_after:
                 if not job.posted_at:
                     continue
@@ -82,20 +76,17 @@ class InMemoryJobStore:
                     continue
 
             # location filter
-            if loc_norm and not text_contains(job.location, loc_norm):
+            if loc_norm and loc_norm not in norm(job.location):
                 continue
 
-            # q filter across title/company/location
-            if q_norm:
-                if not (
-                    text_contains(job.title, q_norm)
-                    or text_contains(job.company, q_norm)
-                    or text_contains(job.location, q_norm)
-                ):
+            # q filter (token AND across title/company/location)
+            if q_tokens:
+                haystack = " ".join(
+                    [norm(job.title), norm(job.company), norm(job.location)])
+                if not all(tok in haystack for tok in q_tokens):
                     continue
 
             results.append(job)
 
-        # newest first
         results.sort(key=lambda j: j.posted_at or datetime.min, reverse=True)
         return results[:limit]
