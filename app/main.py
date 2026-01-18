@@ -2,12 +2,10 @@ from contextlib import asynccontextmanager
 
 from sqlalchemy import text
 from app.db import make_engine, make_session_factory
-from app.services.saved_searches import InMemorySavedSearchRepo
 import httpx
 from fastapi import FastAPI
 
 from app.core.config import settings
-from app.services.store import InMemoryJobStore
 from app.sources.reed import ReedApiClient
 from app.sources.adzuna import AdzunaApiClient
 from app.routers import debug, jobs, health, ingest, searches

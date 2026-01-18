@@ -9,6 +9,7 @@ class Settings(BaseSettings):
     REED_API_KEY: str
     ADZUNA_APP_ID: str
     ADZUNA_APP_KEY: str
+    DATABASE_URL: str
 
     # pydantic-settings v2: load from a local .env file for dev convenience
     model_config = {

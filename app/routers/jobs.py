@@ -3,10 +3,9 @@ from typing import List, Optional
 
 from fastapi import APIRouter, Depends
 
-from app.api.deps import get_db, get_store
+from app.api.deps import get_db
 from app.api.schemas import JobOut
 from app.services import job_repo_db
-from app.services.store import InMemoryJobStore
 from sqlalchemy.orm import Session
 
 router = APIRouter(tags=["jobs"])

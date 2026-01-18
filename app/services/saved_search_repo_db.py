@@ -6,9 +6,9 @@ from typing import List, Optional
 from sqlalchemy import select
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.orm import Session
+from sqlalchemy import func, select
 
 from app.db_models import SavedSearchRow, SeenJobRow
-from app.services import job_repo_db
 from app.services.job_repo_db import search_jobs as db_search_jobs
 
 
@@ -56,8 +56,9 @@ def list_saved_searches(db: Session) -> List[SavedSearchRow]:
 
 
 def count_seen(db: Session, name: str) -> int:
-    stmt = select(SeenJobRow).where(SeenJobRow.search_name == name)
-    return len(db.execute(stmt).scalars().all())
+    stmt = select(func.count()).select_from(
+        SeenJobRow).where(SeenJobRow.search_name == name)
+    return db.execute(stmt).scalar_one()
 
 
 def mark_seen_bulk(db: Session, search_name: str, job_uids: List[str]) -> None:

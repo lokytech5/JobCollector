@@ -3,7 +3,7 @@ from __future__ import annotations
 from datetime import date, datetime
 from typing import List, Optional
 
-from sqlalchemy import and_, or_, select
+from sqlalchemy import and_, or_, select, func
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.orm import Session
 
@@ -34,6 +34,11 @@ def domain_from_jobrow(r: JobRow) -> Job:
         url=r.url,
         posted_at=r.posted_at,
     )
+
+
+def count_jobs(db: Session) -> int:
+    stmt = select(func.count()).select_from(JobRow)
+    return db.execute(stmt).scalar_one()
 
 
 def upsert_many(db: Session, jobs: List[Job]) -> int:
@@ -97,7 +102,7 @@ def search_jobs(
     filters = []
 
     if source_norm:
-        filters.append(JobRow.source.ilike(source_norm))
+        filters.append(JobRow.source == source_norm)
 
     if posted_after:
         # date granularity: posted_at >= posted_after 00:00:00
