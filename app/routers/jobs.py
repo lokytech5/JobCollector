@@ -3,9 +3,11 @@ from typing import List, Optional
 
 from fastapi import APIRouter, Depends
 
-from app.api.deps import get_store
+from app.api.deps import get_db, get_store
 from app.api.schemas import JobOut
+from app.services import job_repo_db
 from app.services.store import InMemoryJobStore
+from sqlalchemy.orm import Session
 
 router = APIRouter(tags=["jobs"])
 
@@ -26,9 +28,9 @@ def to_job_out(j) -> JobOut:
 @router.get("/jobs", response_model=List[JobOut])
 def list_jobs(
     limit: int = 50,
-    store: InMemoryJobStore = Depends(get_store),
+    db: Session = Depends(get_db),
 ):
-    jobs = store.list(limit=limit)
+    jobs = job_repo_db.list_jobs(db, limit=limit)
     return [to_job_out(j) for j in jobs]
 
 
@@ -39,9 +41,10 @@ def search_jobs(
     location: Optional[str] = None,
     posted_after: Optional[date] = None,
     limit: int = 50,
-    store: InMemoryJobStore = Depends(get_store),
+    db: Session = Depends(get_db),
 ):
-    jobs = store.search(
+    jobs = job_repo_db.search_jobs(
+        db,
         q=q,
         source=source,
         location=location,

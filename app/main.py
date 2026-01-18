@@ -22,9 +22,10 @@ async def lifespan(app: FastAPI):
 
     with engine.connect() as conn:
         conn.execute(text("select 1"))
+
     # singletons
-    app.state.store = InMemoryJobStore()
-    app.state.searches = InMemorySavedSearchRepo()
+    # app.state.store = InMemoryJobStore()
+    # app.state.searches = InMemorySavedSearchRepo()
 
     # shared HTTP clients
     reed_http = httpx.Client(auth=(settings.REED_API_KEY, ""), timeout=30, headers={
