@@ -21,7 +21,7 @@ class DebugAddJobIn(BaseModel):
 
 class IngestOut(BaseModel):
     fetched: int
-    inserted: int
+    affected: int
     total_in_store: int
 
 

@@ -23,7 +23,7 @@ def ingest_reed(
     )
     affected = job_repo_db.upsert_many(db, jobs)
     total = job_repo_db.count_jobs(db)
-    return IngestOut(fetched=len(jobs), inserted=affected, total_in_store=total)
+    return IngestOut(fetched=len(jobs), affected=affected, total_in_store=total)
 
 
 @router.post("/ingest/adzuna", response_model=IngestOut)
@@ -40,7 +40,7 @@ def ingest_adzuna(
     )
     affected = job_repo_db.upsert_many(db, jobs)
     total = job_repo_db.count_jobs(db)
-    return IngestOut(fetched=len(jobs), inserted=affected, total_in_store=total)
+    return IngestOut(fetched=len(jobs), affected=affected, total_in_store=total)
 
 
 @router.post("/ingest/all", response_model=IngestAllOut)
@@ -69,8 +69,8 @@ def ingest_all(
 
     return IngestAllOut(
         reed=IngestOut(fetched=len(reed_jobs),
-                       inserted=reed_affected, total_in_store=total),
+                       affected=reed_affected, total_in_store=total),
         adzuna=IngestOut(fetched=len(adzuna_jobs),
-                         inserted=adzuna_affected, total_in_store=total),
+                         affected=adzuna_affected, total_in_store=total),
         total_in_store=total,
     )
