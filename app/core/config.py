@@ -11,6 +11,20 @@ class Settings(BaseSettings):
     ADZUNA_APP_KEY: str
     DATABASE_URL: str
 
+    # cron security
+    CRON_SECRET: str
+
+    # email routing
+    EMAIL_FROM: str
+    EMAIL_TO: str
+
+    # provider switch
+    EMAIL_PROVIDER: str = "postmark"  # "postmark" or "smtp"
+
+    # postmark
+    POSTMARK_SERVER_TOKEN: str | None = None
+    POSTMARK_MESSAGE_STREAM: str = "outbound"
+
     # pydantic-settings v2: load from a local .env file for dev convenience
     model_config = {
         "env_file": str(Path(__file__).resolve().parents[2] / ".env"),
@@ -18,5 +32,4 @@ class Settings(BaseSettings):
     }
 
 
-# Instantiate settings at import time.
 settings = Settings()
