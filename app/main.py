@@ -6,9 +6,10 @@ import httpx
 from fastapi import FastAPI
 
 from app.core.config import settings
+from app.mailer import make_mailer
 from app.sources.reed import ReedApiClient
 from app.sources.adzuna import AdzunaApiClient
-from app.routers import debug, jobs, health, ingest, searches
+from app.routers import debug, jobs, health, ingest, searches, tasks
 
 
 @asynccontextmanager
@@ -21,9 +22,7 @@ async def lifespan(app: FastAPI):
     with engine.connect() as conn:
         conn.execute(text("select 1"))
 
-    # singletons
-    # app.state.store = InMemoryJobStore()
-    # app.state.searches = InMemorySavedSearchRepo()
+    app.state.mailer = make_mailer()
 
     # shared HTTP clients
     reed_http = httpx.Client(auth=(settings.REED_API_KEY, ""), timeout=30, headers={
@@ -49,3 +48,4 @@ app.include_router(jobs.router)
 app.include_router(ingest.router)
 app.include_router(debug.router)
 app.include_router(searches.router)
+app.include_router(tasks.router)

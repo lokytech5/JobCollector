@@ -1,7 +1,12 @@
 from fastapi import Request
+from app.mailer.base import Mailer
 from app.sources.reed import ReedApiClient
 from app.sources.adzuna import AdzunaApiClient
 from sqlalchemy.orm import Session
+
+
+def get_mailer(request: Request) -> Mailer:
+    return request.app.state.mailer
 
 
 def get_reed_client(request: Request) -> ReedApiClient:

@@ -2,6 +2,7 @@
 # FastAPI apps in production read config from environment variables (12-factor style).
 
 from pathlib import Path
+from typing import Optional
 from pydantic_settings import BaseSettings
 
 
@@ -22,8 +23,8 @@ class Settings(BaseSettings):
     EMAIL_PROVIDER: str = "postmark"  # "postmark" or "smtp"
 
     # postmark
-    POSTMARK_SERVER_TOKEN: str | None = None
-    POSTMARK_MESSAGE_STREAM: str = "outbound"
+    POSTMARK_SERVER_TOKEN: Optional[str] = None
+    POSTMARK_MESSAGE_STREAM: str = "notification"
 
     # pydantic-settings v2: load from a local .env file for dev convenience
     model_config = {
