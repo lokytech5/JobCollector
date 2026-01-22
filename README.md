@@ -95,7 +95,7 @@ This project follows a simple but scalable backend pattern:
 
 We’re starting in a single file for clarity, then refactoring into modules once the full flow works.
 
-# Roadmap (what we’ll build next)
+# Roadmap
 
 1. **Reed ingestion**  
    - `POST /ingest/reed` calls Reed search API and stores results.
