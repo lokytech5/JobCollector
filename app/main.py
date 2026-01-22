@@ -37,9 +37,14 @@ async def lifespan(app: FastAPI):
     try:
         yield
     finally:
+        try:
+            app.state.mailer.close()
+        except Exception:
+            pass
         reed_http.close()
         adzuna_http.close()
         engine.dispose()
+
 
 app = FastAPI(title="Job Collector (Learning Version)", lifespan=lifespan)
 

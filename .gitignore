@@ -1,22 +1,14 @@
-# Python
-__pycache__/
-*.py[cod]
-*.pyo
-*.pyd
+# Python packaging / tooling
+*.egg-info/
+dist/
+build/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
 
-# Virtual envs
-.venv/
-venv/
-.envrc
+# Env files (keep your existing)
+.env.*
+!.env.example
 
-# Env secrets
-.env
-
-# Pipenv
-Pipfile.lock
-
-# macOS
-.DS_Store
-
-# Logs
-*.log
+# Render / misc
+*.sqlite3
