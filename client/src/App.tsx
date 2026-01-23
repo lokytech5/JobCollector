@@ -1,11 +1,17 @@
 import './App.css'
 import DashboardPage from './dashboard/DashboardPage'
+import { AppShell } from './layout/AppShell'
 
 function App() {
 
   return (
     <>
-      <DashboardPage/>
+      <AppShell>
+        <DashboardPage />
+      </AppShell>
+
+      {/* Global toast outlet */}
+      <Toaster />
     </>
   )
 }
