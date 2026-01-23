@@ -1,23 +1,53 @@
 import { DashboardSummaryCards } from "@/components/DashboardSummaryCards"
 import { DashboardHeader } from "./DashboardHeader"
-
+import type { DashboardJobRow, SavedSearch } from "@/types/job"
+import { DashboardRow } from "./DashboardRow"
 
 export default function DashboardPage() {
   const isLoading = false
 
-  // Replace with your GET /dashboard (or searches + jobs aggregation)
-  const metrics = {
-    savedSearches: 6,
-    latestJobs: 214,
-    // newJobsLastRun: 12,
-    // emailStatus: "Enabled",
-    // nextRunAt: "08:00 GMT",
-  }
+  const searches: SavedSearch[] = [
+    { name: "Frontend London", query: "react typescript", location: "London", seen_count: 31 },
+    { name: "Remote Full Stack", query: "node react", location: "Remote (UK)", seen_count: 12 },
+  ]
+
+  const jobs: DashboardJobRow[] = [
+    {
+      id: "j1",
+      title: "Frontend Engineer (React)",
+      company: "Acme Ltd",
+      location: "London, UK",
+      source: "Reed",
+      postedAt: "2026-01-22",
+    },
+    {
+      id: "j2",
+      title: "Full Stack Developer",
+      company: "Northwind",
+      location: "Remote (UK)",
+      source: "Adzuna",
+      postedAt: "2026-01-21",
+    },
+  ]
 
   return (
-    <div className="mx-auto w-full max-w-7xl p-4 md:p-6 space-y-6">
+    <div className="space-y-6">
       <DashboardHeader />
-      <DashboardSummaryCards isLoading={isLoading} metrics={metrics} />
+      <DashboardSummaryCards
+        isLoading={isLoading}
+        metrics={{ savedSearches: searches.length, latestJobs: jobs.length }}
+      />
+
+      <DashboardRow
+        searches={searches}
+        jobs={jobs}
+        isLoadingSearches={isLoading}
+        isLoadingJobs={isLoading}
+        onOpenSearch={(name) => console.log("open search:", name)}
+        onCreateSearch={() => console.log("create search")}
+        onRunIngest={() => console.log("run ingest")}
+        onOpenJob={(jobId) => console.log("open job (later drawer):", jobId)}
+      />
     </div>
   )
 }
