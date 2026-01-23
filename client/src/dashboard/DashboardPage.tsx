@@ -2,8 +2,11 @@ import { DashboardSummaryCards } from "@/components/DashboardSummaryCards"
 import { DashboardHeader } from "./DashboardHeader"
 import type { DashboardJobRow, SavedSearch } from "@/types/job"
 import { DashboardRow } from "./DashboardRow"
+import { SearchDialog } from "@/components/SearchDialog"
+import { useState } from "react"
 
 export default function DashboardPage() {
+
   const isLoading = false
 
   const searches: SavedSearch[] = [
@@ -29,6 +32,37 @@ export default function DashboardPage() {
       postedAt: "2026-01-21",
     },
   ]
+
+  const [dialogOpen, setDialogOpen] = useState(false)
+const [mode, setMode] = useState<"create" | "edit">("create")
+const [initial, setInitial] = useState<Partial<SavedSearch> | undefined>(undefined)
+
+// Example existing names for uniqueness warning:
+const existingNames = searches.map((s) => s.name)
+
+const openCreate = () => {
+  setMode("create")
+  setInitial(undefined)
+  setDialogOpen(true)
+}
+
+const openEdit = (search: SavedSearch) => {
+  setMode("edit")
+  setInitial(search)
+  setDialogOpen(true)
+}
+
+<SearchDialog
+  open={dialogOpen}
+  onOpenChange={setDialogOpen}
+  mode={mode}
+  initial={initial}
+  existingNames={existingNames}
+  onSave={async (payload) => {
+    // TODO: POST /searches (upsert)
+    console.log("save search:", payload)
+  }}
+/>
 
   return (
     <div className="space-y-6">

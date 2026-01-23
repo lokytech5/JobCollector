@@ -1,5 +1,7 @@
 export type JobSource = "Reed" | "Adzuna" | "Other"
 
+export type SearchSource = "All" | "Reed" | "Adzuna"
+
 export type Job = {
   id: string
   title: string
@@ -17,7 +19,10 @@ export type SavedSearch = {
   name: string
   query: string
   location: string
-  seen_count: number
+  seen_count?: number
+  limit?: number
+  source?: SearchSource // optional advanced
+  posted_after?: string 
 }
 
 export type DashboardJobRow = {
