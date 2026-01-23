@@ -2,13 +2,15 @@ import './App.css'
 import { Toaster } from './components/toaster'
 import DashboardPage from './dashboard/DashboardPage'
 import { AppShell } from './layout/AppShell'
+import SearchFeedPage from './search/SearchFeedPage'
 
 function App() {
 
   return (
     <>
       <AppShell>
-        <DashboardPage />
+        <SearchFeedPage />
+
       </AppShell>
 
       {/* Global toast outlet */}
