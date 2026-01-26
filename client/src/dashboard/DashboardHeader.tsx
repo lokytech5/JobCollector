@@ -24,48 +24,38 @@ export function DashboardHeader({
 }: DashboardHeaderProps) {
   return (
     <div className="space-y-4">
-      <div className="flex items-start justify-between gap-3">
-        {/* Left: Title */}
-        <div className="min-w-0">
-          <h1 className="text-2xl font-semibold tracking-tight">Dashboard</h1>
-          <p className="text-xs text-muted-foreground">
-            Quick view of saved searches and latest jobs.
-          </p>
-        </div>
-
-        {/* Right: Actions */}
-        <div className="flex flex-wrap items-center justify-end gap-2">
-          <Button onClick={onRunAllNow} disabled={isRunning}>
-            {isRunning ? "Running…" : "Run all now"}
-          </Button>
-
-          <Button variant="secondary" onClick={onNewSearch}>
-            New search
-          </Button>
-
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline">Quick actions</Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-52">
-              <DropdownMenuLabel>Actions</DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => onQuickAction?.("run-latest")}>
-                Run latest ingest
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => onQuickAction?.("refresh")}>
-                Refresh dashboard
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => onQuickAction?.("export")}>
-                Export searches (CSV)
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
-      </div>
-
-      <Separator />
+  <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+    {/* Left: Title */}
+    <div className="min-w-0">
+      <h1 className="text-2xl font-semibold tracking-tight">Dashboard</h1>
+      <p className="text-xs text-muted-foreground">
+        Quick view of saved searches and latest jobs.
+      </p>
     </div>
+
+    {/* Right: Actions */}
+    <div className="flex flex-wrap items-center gap-2 sm:justify-end">
+      <Button className="w-full sm:w-auto" onClick={onRunAllNow} disabled={isRunning}>
+        {isRunning ? "Running…" : "Run all now"}
+      </Button>
+
+      <Button className="w-full sm:w-auto" variant="secondary" onClick={onNewSearch}>
+        New search
+      </Button>
+
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button className="w-full sm:w-auto" variant="outline">
+            Quick actions
+          </Button>
+        </DropdownMenuTrigger>
+        {/* ... */}
+      </DropdownMenu>
+    </div>
+  </div>
+
+  <Separator />
+</div>
+
   )
 }
