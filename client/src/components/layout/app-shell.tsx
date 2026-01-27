@@ -1,9 +1,11 @@
-import * as React from "react";
 import { Outlet } from "react-router-dom";
 
-import { Sidebar } from "./sidebar";
+
 import { Topbar } from "./topbar";
+import { Sidebar } from "./sidebar";
+import { Footer } from "./footer";
 import { mainNav, secondaryNav } from "./nav";
+
 
 export function AppShell({
   brand = "YourApp",
@@ -30,6 +32,8 @@ export function AppShell({
             {/* Route content (your pages) */}
             <Outlet />
           </div>
+
+          <Footer brand="JobCollector" />
         </main>
       </div>
     </div>

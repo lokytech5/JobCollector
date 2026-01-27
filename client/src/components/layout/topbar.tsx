@@ -14,8 +14,9 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { SidebarContent } from "./sidebar";
+import { ThemeToggle } from "./theme-toggle";
 import type { NavItem } from "./nav";
+import { SidebarContent } from "./sidebar";
 
 export function Topbar({
   brand = "YourApp",
@@ -80,6 +81,8 @@ export function Topbar({
             <div />
           )}
         </div>
+
+        <ThemeToggle />
 
         {/* User menu */}
         <DropdownMenu>

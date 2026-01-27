@@ -2,8 +2,9 @@ import "./App.css";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 
 import { HomePage } from "@/pages/home";
-import { AppShell } from "./components/app-shell";
+import { AppShell } from "./components/layout/app-shell";
 import { DashboardPage } from "./pages/dashboard-page";
+import { ThemeProvider } from "./components/providers/theme-provider";
 
 // placeholders
 function LoginPage() {
@@ -16,6 +17,8 @@ function NotFound() {
 
 export default function App() {
   return (
+    <ThemeProvider>
+
     <BrowserRouter>
       <Routes>
         {/* Public homepage */}
@@ -29,7 +32,7 @@ export default function App() {
               <Route path="projects" element={<ProjectsPage />} />
               <Route path="users" element={<UsersPage />} />
               <Route path="settings" element={<SettingsPage />} />
-          */}
+              */}
         </Route>
 
         {/* fallback */}
@@ -37,5 +40,6 @@ export default function App() {
         <Route path="*" element={<NotFound />} />
       </Routes>
     </BrowserRouter>
+    </ThemeProvider>
   );
 }
