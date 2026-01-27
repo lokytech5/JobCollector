@@ -519,26 +519,68 @@ export function HomePage() {
 
       <Separator />
 
-      {/* CTA */}
-      <section className="mx-auto max-w-6xl px-4 py-12 md:px-6">
-        <div className="rounded-2xl border bg-muted/20 p-6 md:p-8">
-          <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-            <div>
-              <div className="text-lg font-semibold tracking-tight">
-                Ready to set your first search?
-              </div>
-              <div className="mt-1 text-sm text-muted-foreground">
-                Start with one rule. Let the daily digest do the rest.
-              </div>
-            </div>
-            <Button asChild size="lg">
-              <Link to="/app">
-                Open dashboard <ArrowRight className="ml-2 h-4 w-4" />
-              </Link>
-            </Button>
-          </div>
-        </div>
-      </section>
+{/* Trust / Status */}
+<section className="mx-auto max-w-6xl px-4 py-12 md:px-6">
+  <div className="mb-6">
+    <h2 className="text-2xl font-semibold tracking-tight">Built for consistency</h2>
+    <p className="mt-2 max-w-2xl text-muted-foreground">
+      A simple system you can rely on daily — with clear expectations while we keep shipping.
+    </p>
+  </div>
+
+  <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+    <Card className="shadow-sm">
+      <CardHeader>
+        <CardTitle className="text-base">No spam</CardTitle>
+      </CardHeader>
+      <CardContent className="text-sm text-muted-foreground">
+        Digest sends only when there are new jobs to review.
+      </CardContent>
+    </Card>
+
+    <Card className="shadow-sm">
+      <CardHeader>
+        <CardTitle className="text-base">Private by default</CardTitle>
+      </CardHeader>
+      <CardContent className="text-sm text-muted-foreground">
+        Your saved searches and seen history stay tied to your account.
+      </CardContent>
+    </Card>
+
+    <Card className="shadow-sm">
+      <CardHeader>
+        <CardTitle className="text-base">Early access</CardTitle>
+      </CardHeader>
+      <CardContent className="text-sm text-muted-foreground">
+        We’re actively improving relevance, speed, and source coverage.
+      </CardContent>
+    </Card>
+
+    <Card className="shadow-sm">
+      <CardHeader>
+        <CardTitle className="text-base">Feedback loop</CardTitle>
+      </CardHeader>
+      <CardContent className="text-sm text-muted-foreground">
+        Have a source request or a bug? Send it in Support.
+      </CardContent>
+    </Card>
+  </div>
+
+  <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+  <div className="space-y-0.5">
+    <p className="text-sm font-medium">Want to shape what ships next?</p>
+    <p className="text-sm text-muted-foreground">
+      Tell us which sources to add and what roles you’re targeting.
+    </p>
+  </div>
+
+  <Button asChild variant="outline" className="sm:h-10">
+    <Link to="/app/support">Request a source</Link>
+  </Button>
+</div>
+
+</section>
+
 
       {/* Simple public footer */}
       <footer className="border-t">

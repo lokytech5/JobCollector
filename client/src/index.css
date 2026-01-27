@@ -121,3 +121,25 @@
     @apply bg-background text-foreground;
   }
 }
+
+
+@layer utilities {
+  /* Headings */
+  .t-h1 { @apply text-4xl font-semibold tracking-tight leading-[1.05] sm:text-5xl lg:text-6xl; }
+  .t-h2 { @apply text-2xl font-semibold tracking-tight; }
+  .t-h3 { @apply text-lg font-semibold tracking-tight; }
+
+  /* Body */
+  .t-lead { @apply text-base text-muted-foreground leading-7 sm:text-lg sm:leading-8 max-w-[52ch]; }
+  .t-body { @apply text-sm text-muted-foreground leading-6 sm:text-base sm:leading-7; }
+
+  /* Small text */
+  .t-caption { @apply text-xs text-muted-foreground; }
+  .t-eyebrow { @apply text-xs font-medium tracking-wide text-muted-foreground; }
+
+  /* Card title (consistent everywhere) */
+  .t-card-title { @apply text-base font-semibold tracking-tight; }
+
+  /* Strong inline */
+  .t-strong { @apply font-medium text-foreground; }
+}

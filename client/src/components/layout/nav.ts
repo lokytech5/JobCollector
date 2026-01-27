@@ -4,6 +4,7 @@ import {
   Users,
   Settings,
   LifeBuoy,
+  Briefcase,
 } from "lucide-react";
 
 export type NavItem = {
@@ -14,6 +15,7 @@ export type NavItem = {
 
 export const mainNav: NavItem[] = [
   { title: "Dashboard", href: "/app", icon: LayoutDashboard },
+  { title: "Jobs", href: "/app/jobs", icon: Briefcase },
   { title: "Projects", href: "/app/projects", icon: FolderKanban },
   { title: "Users", href: "/app/users", icon: Users },
 ];
