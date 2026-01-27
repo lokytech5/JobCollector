@@ -9,7 +9,7 @@ from app.core.config import settings
 from app.mailer import make_mailer
 from app.sources.reed import ReedApiClient
 from app.sources.adzuna import AdzunaApiClient
-from app.routers import debug, jobs, health, ingest, searches, tasks
+from app.routers import debug, jobs, health, ingest, searches, tasks, ui
 
 
 @asynccontextmanager
@@ -54,3 +54,4 @@ app.include_router(ingest.router)
 app.include_router(debug.router)
 app.include_router(searches.router)
 app.include_router(tasks.router)
+app.include_router(ui.router)
