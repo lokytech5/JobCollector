@@ -8,7 +8,7 @@ import { mainNav, secondaryNav } from "./nav";
 
 
 export function AppShell({
-  brand = "YourApp",
+  brand = "JC",
   showSearch = true,
 }: {
   brand?: string;

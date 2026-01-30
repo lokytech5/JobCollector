@@ -5,6 +5,7 @@ import { HomePage } from "@/pages/home";
 import { AppShell } from "./components/layout/app-shell";
 import { DashboardPage } from "./pages/dashboard-page";
 import { ThemeProvider } from "./components/providers/theme-provider";
+import { JobsPage } from "./features/jobs/pages/jobs-page";
 
 // placeholders
 function LoginPage() {
@@ -28,6 +29,7 @@ export default function App() {
         {/* App area uses AppShell */}
         <Route path="/app" element={<AppShell brand="YourApp" />}>
           <Route index element={<DashboardPage />} />
+          <Route path="jobs" element={<JobsPage />} />
           {/* add more:
               <Route path="projects" element={<ProjectsPage />} />
               <Route path="users" element={<UsersPage />} />

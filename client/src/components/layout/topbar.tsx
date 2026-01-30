@@ -1,6 +1,6 @@
 import * as React from "react";
 import { Link } from "react-router-dom";
-import { Menu } from "lucide-react";
+import { Menu, Sparkles } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -19,7 +19,7 @@ import type { NavItem } from "./nav";
 import { SidebarContent } from "./sidebar";
 
 export function Topbar({
-  brand = "YourApp",
+  brand,
   mainNav,
   secondaryNav,
   showSearch = true,
@@ -35,7 +35,7 @@ export function Topbar({
 
   return (
     <header className="sticky top-0 z-40 w-full border-b bg-background/80 backdrop-blur">
-      <div className="flex h-14 items-center gap-3 px-4 md:px-6">
+      <div className="flex h-14 items-center gap-4 px-4 md:px-6">
         {/* Mobile sidebar */}
         <Sheet>
           <SheetTrigger asChild>
@@ -59,9 +59,28 @@ export function Topbar({
         </Sheet>
 
         {/* Brand */}
-        <Link to="/app" className="text-sm font-semibold tracking-tight">
-          {brand}
-        </Link>
+<Link
+  to="/app"
+  className="group inline-flex items-center gap-2 rounded-lg px-2 py-1 text-sm font-semibold tracking-tight hover:bg-accent hover:text-accent-foreground"
+>
+  {/* Logo mark */}
+  <span className="inline-flex h-8 w-8 items-center justify-center rounded-lg border bg-background shadow-sm">
+    {/* you can swap Sparkles for your own logo later */}
+    <Sparkles className="h-4 w-4" />
+  </span>
+
+  {/* Wordmark */}
+  <span className="leading-none">JC</span>
+
+  {/* Optional tiny badge (remove if you don’t want it) */}
+  <span className="hidden rounded-full border bg-muted px-2 py-0.5 text-[11px] font-medium text-muted-foreground sm:inline">
+    beta
+  </span>
+
+  {/* subtle divider cue */}
+  <span className="ml-1 hidden h-5 w-px bg-border sm:inline-block" />
+</Link>
+
 
         {/* Search */}
         <div className="flex flex-1 items-center justify-center">
